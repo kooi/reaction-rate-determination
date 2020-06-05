@@ -2,11 +2,17 @@
 
 <head>
 
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
 
 
   <script>
     // elementary only currently
+    // TODO: Load parameters based off passed identifier from parameter database
+    // TODO: Remove label data
+    // TODO: Include formatted reaction
     var parameters = {
       id: 1,
       title: 'Experiment name',
@@ -27,7 +33,7 @@
           id: 'reactant_b',
           concentration: 0.6,
           // ---- //
-          order: 1,
+          order: 0,
           stoichiometric_coefficient: 1,
         },
       ],
@@ -42,15 +48,17 @@
         stoichiometric_coefficient: 2,
       }, ],
       rate_constant: 1,
+      // TODO: v2: Include a noise function in a sane way
       noise: function() {
         return 1; //  + (Math.random() - 0.5)*1
       },
     };
 
+    // TODO: inlcude in the same way as the species
     var conditions = {
       t: 0.0,
       dt: 0.01,
-      Nmax: 5000,
+      Nmax: 100,
     };
 
     var data = [];
@@ -59,76 +67,170 @@
 </head>
 
 <body>
+  <!-- TODO: Use simple (responsive) box formatting for layout -->
+  <!-- TODO: Initialize with moodle user id! -->
 
-  Initialize with moodle user id!
+  <div class='container border border-dark'>
 
-  <div id='experimental_conditions'>
-    <!-- <div id='reactants'>
-      [A] = <input id='reactant_a_initial'> M<br>
-      [B] = <input id='reactant_b_initial'> M<br>
-    </div> -->
-    &Delta;t = <input id='dt'> s<br>
-    N<sub>max</sub> = <input id='tmax'><br>
+    <div class='row' class='border border-dark'>
+      <div id='header'>
+        <h2>There should be a title here</h2>
+        <div id='formula'>
+          A + B --> C
+        </div>
+      </div>
+    </div>
+
+    <div class='row'>
+      <div class='col border border-dark'>
+
+        <div id='experimental_conditions' class='border border-dark'>
+          <!-- TODO: refactor to load from config -->
+          <!-- <input id='dt' value='0.01'> s<br> -->
+          <!-- N<sub>max</sub> = <input id='tmax' value='5000'><br> -->
+
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text">&Delta;t = </span>
+            </div>
+            <input type="text" class="form-control" id='dt' value='0.01'>
+            <div class="input-group-append">
+              <span class="input-group-text">s</span>
+            </div>
+          </div>
+
+          <div class="input-group mb-3">
+            <div class="input-group-prepend">
+              <span class="input-group-text">N<sub>max</sub> = </span>
+            </div>
+            <input type="text" class="form-control" input id='tmax' value='100'>
+            <!-- <div class="input-group-append"> -->
+              <!-- <span class="input-group-text">.00</span> -->
+            <!-- </div> -->
+          </div>
+        </div>
+
+      </div>
+      <div class='col border border-dark'>
+        <div id='experimental_buttons' class='border border-dark'>
+          <!-- TODO: Load from URL parameters -->
+          <!-- TDOD: Load from cookie -->
+          <button onclick="loadExperiment()" class="btn btn-outline-primary">
+            loadExperiment()
+          </button>
+          <button onclick="loadParameters()" class="btn btn-outline-primary">
+            loadParameters()
+          </button>
+          <button onclick="createEmptyPlot()" class="btn btn-outline-primary">
+            createEmptyPlot()
+          </button>
+          <button onclick="calculateData()" class="btn btn-outline-primary">
+            calculateData()
+          </button>
+          <button onclick="startExperiment()" class="btn btn-outline-primary">
+            startExperiment()
+          </button>
+          <button onclick="" id="stop_experiment_button" class="btn btn-outline-danger">
+            stopExperiment()
+          </button>
+          <button onclick="plotExperiment()" class="btn btn-outline-primary">
+            plotExperiment()
+          </button>
+          <button onclick="getCSVFile()" class="btn btn-outline-success">
+            getCSVFile()
+          </button>
+          <!-- TODO: Reset button -->
+        </div>
+      </div>
+    </div>
+
+    <div class='row'>
+      <div id="graph"></div>
+    </div>
 
   </div>
 
-  <!-- <button id='add_random'>getData()</button> -->
-  <button onclick="loadExperiment()">
-    loadExperiment()
-  </button>
-  <button onclick="calculateData()">
-    calculateData()
-  </button>
-  <button onclick="startExperiment()">
-    startExperiment()
-  </button>
-  <button onclick="" id="stop_experiment_button">
-    stopExperiment()
-  </button>
-  <button onclick="plotExperiment()">
-    plotExperiment()
-  </button>
-  <button onclick="getCSVFile()">
-    getCSVFile()
-  </button>
 
-  <div id="graph"></div>
+  <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script> -->
+  <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script> -->
+  <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script> -->
 
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
-    let range = n => [...Array(n).keys()]
+    // TODO: Rearrange functions into:
+    // TODO: * user controllable step functions
+    // TODO: * called partial step functions (cuurently button callable)
+    // TODO: * organised utility functions
+    // TODO: * organised utility data functions
 
+
+    // <div class="input-group mb-3">
+    //   <div class="input-group-prepend">
+    //     <span class="input-group-text">$</span>
+    //   </div>
+    //   <input type="text" class="form-control" aria-label="Amount (to the nearest dollar)">
+    //   <div class="input-group-append">
+    //     <span class="input-group-text">.00</span>
+    //   </div>
+    // </div>
 
     function loadExperiment() {
-      plotly_data = []
-      // create initial condition input
       for (r in parameters.reactants) {
 
-        lb0 = document.createTextNode(parameters.reactants[r].label0)
-        lb1 = document.createTextNode(parameters.reactants[r].label1)
+        grp = document.createElement('div');
+        grp.classList.add('input-group');
+        grp.classList.add('mb-3');
+
+        gd0 = document.createElement('div');
+        gd0.classList.add('input-group-prepend');
+
+        gt0 = document.createElement('span');
+        gt0.classList.add('input-group-text');
+        gt0.textContent = parameters.reactants[r].label0;
+
         inp = document.createElement('input')
-        lbr = document.createElement('br')
+        inp.setAttribute('type', 'text');
         inp.value = parameters.reactants[r].concentration;
         inp.id = parameters.reactants[r].id;
+        inp.classList.add('form-control')
+
+        gd1 = document.createElement('div');
+        gd1.classList.add('input-group-append');
+
+        gt1 = document.createElement('span');
+        gt1.classList.add('input-group-text');
+        gt1.textContent = parameters.reactants[r].label1;
+
+        // lb0 = document.createTextNode(parameters.reactants[r].label0)
+        // lb1 = document.createTextNode(parameters.reactants[r].label1)
+        // lbr = document.createElement('br')
 
         exp = document.getElementById('experimental_conditions');
-        exp.appendChild(lb0);
-        exp.appendChild(inp);
-        exp.appendChild(lb1);
-        exp.appendChild(lbr);
+        exp.appendChild(grp);
+        grp.appendChild(gd0);
+        gd0.appendChild(gt0);
+        grp.appendChild(inp);
+        grp.appendChild(gd1);
+        gd1.appendChild(gt1);
+      }
+    }
 
+
+    function createEmptyPlot() {
+      plotly_data = []
+      for (r in parameters.reactants) {
         pobj = {
-          x: [0.0],
+          x: [conditions.t],
           y: [parameters.reactants[r].concentration],
           type: 'scatter',
           name: parameters.reactants[r].formula,
         }
         plotly_data.push(pobj);
-
       }
 
       for (p in parameters.products) {
         pobj = {
-          x: [0.0],
+          x: [conditions.t],
           y: [parameters.products[p].concentration],
           type: 'scatter',
           name: parameters.products[p].formula,
@@ -136,7 +238,8 @@
         plotly_data.push(pobj);
       }
 
-      // add reaction rate
+      // TODO: v2: Inlcude a reaction rate plot (either concurrent or overlaid in same plot)
+      // DEBUG: Reaction rate
       // plotly_data.push({
       //   x: [],
       //   y: [],
@@ -145,17 +248,28 @@
       // });
       // to here
 
-      // plotly plot
-      Plotly.plot('graph', plotly_data, {}, {
+      Plotly.plot('graph', plotly_data, {
+        //        autosize: true,
+        // width: 1000,
+      }, {
         responsive: true,
       });
-
-
     }
 
+    function loadParameters() {
+      for (r in parameters.reactants) {
+        parameters.reactants[r].concentration = parseFloat(document.getElementById(parameters.reactants[r].id).value)
+      }
+      // TODO: v2: When this is all 'species'
+      // for (p in parameters.products) {
+      //   parameters.products[p].concentration = parseFloat(document.getElementById(parameters.products[p].id).value)
+      // }
+    }
+
+
     function calculateRate(rc) {
-      // check if len(rc) > len(parameters.reactants)
-      // if equal also a problem...
+      // TODO: v2: Move from reactants & products to species (visible & invisible)
+      // TODO: v2: and transition function parameters based off species ids
       s = parameters.rate_constant;
       for (r in parameters.reactants) {
         if (rc[r] > 0) {
@@ -167,13 +281,8 @@
       return s;
     }
 
-    function calculateData() {
-      // var conditions = {
-      //   t: 0.0,
-      //   dt: 0.1,
-      //   Nmax: 1000,
-      // };
 
+    function calculateData() {
       t = conditions.t;
       c = [];
       for (r in parameters.reactants) {
@@ -185,12 +294,10 @@
         c.push(parameters.products[p].concentration);
       }
 
-      // START AT 1!
-      // data = [];
       s = calculateRate(c);
+      // DEBUG: Reaction rate
       // data_line = [t].concat(c, [0]);
       data_line = [t].concat(c);
-      // console.log(data_line);
       data.push(data_line);
       for (i = 1; i < conditions.Nmax; i++) {
         t = t + conditions.dt;
@@ -211,11 +318,12 @@
         c = c_next;
         s = calculateRate(c);
         data_line = [t].concat(c);
+        // DEBUG: Reaction rate
         // data_line = [t].concat(c, s);
-        // console.log(data_line);
         data.push(data_line);
       }
     }
+
 
     function plotExperiment() {
       data_x = []
@@ -236,26 +344,19 @@
       }, range(data_x.length));
     }
 
-    // plotly 'live' updating
-    // do this better...
+
     function startExperiment() {
       dataslice = getData();
       setIntervalX(function() {
         temp_data = dataslice.next()
-        // console.log(temp_data);
         Plotly.extendTraces('graph', {
-          // do this live
           x: temp_data.value[0],
           y: temp_data.value[1],
         }, range(temp_data.value[0].length));
       }, 100, conditions.Nmax);
     }
 
-    // experiment functions
 
-    // returns the current timestep worth of data,
-    // including any noise is requested
-    // make this a generator
     function* getData(start = 0, end = data.length, step = 1) {
       let iterationCount = 0;
       for (let i = start; i < end; i += step) {
@@ -266,25 +367,16 @@
           data_x.push([data[i][0]]);
           data_y.push([data[i][j]]);
         }
-        // console.log([data_x, data_y]);
         yield [data_x, data_y];
       }
       return iterationCount;
     }
 
-    // get this with a yield function....
-    // function getData() {
-    //   return calcC() + parameters.noise();
-    // }
-
-    // function calcC() {
-    //   return 0
-    //   // calculate rate
-    //   // calculate change
-    // }
-
 
     // helper functions
+    let range = n => [...Array(n).keys()]
+
+
     function setIntervalX(callback, delay, repetitions) {
       var x = 0;
       var intervalID = window.setInterval(function() {
@@ -298,12 +390,9 @@
       });
     }
 
-    function getCSVFile() {
-      // const rows = [
-      //     ["name1", "city1", "some other info"],
-      //     ["name2", "city2", "more info"]
-      // ];
 
+    function getCSVFile() {
+      // TODO: Include header
       let csvContent = "data:text/csv;charset=utf-8,";
 
       data.forEach(function(rowArray) {
@@ -311,16 +400,14 @@
         csvContent += row + "\r\n";
       });
 
-      // var encodedUri = encodeURI(csvContent);
-      // window.open(encodedUri);
-
       var encodedUri = encodeURI(csvContent);
       var link = document.createElement("a");
       link.setAttribute("href", encodedUri);
+      // TODO: set filename based off data
       link.setAttribute("download", "my_data.csv");
       document.body.appendChild(link); // Required for FF
 
-      link.click(); // This will download the data file named "my_data.csv".
+      link.click();
     }
   </script>
 
