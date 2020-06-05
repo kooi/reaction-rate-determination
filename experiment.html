@@ -11,35 +11,35 @@
       id: 1,
       title: 'Experiment name',
       reactants: [{
-          formula: 'A',
-          label0: '[A] = ',
+          formula: 'NO',
+          label0: '[NO] = ',
           label1: ' M',
           id: 'reactant_a',
           concentration: 1.0,
           // ---- //
+          order: 0,
+          stoichiometric_coefficient: 2,
+        },
+        {
+          formula: 'O2',
+          label0: '[O2] = ',
+          label1: ' M',
+          id: 'reactant_b',
+          concentration: 0.6,
+          // ---- //
           order: 1,
           stoichiometric_coefficient: 1,
         },
-        {
-          formula: 'B',
-          label0: '[B] = ',
-          label1: ' M',
-          id: 'reactant_b',
-          concentration: 1.0,
-          // ---- //
-          order: 1,
-          stoichiometric_coefficient: 2,
-        },
       ],
       products: [{
-        formula: 'C',
-        label0: '[C] = ',
+        formula: 'NO2',
+        label0: '[NO2] = ',
         label1: ' M',
         id: 'reactant_c',
         concentration: 0.0,
         // ---- //
         order: 1,
-        stoichiometric_coefficient: 3,
+        stoichiometric_coefficient: 2,
       }, ],
       rate_constant: 1,
       noise: function() {
@@ -50,7 +50,7 @@
     var conditions = {
       t: 0.0,
       dt: 0.01,
-      Nmax: 500,
+      Nmax: 5000,
     };
 
     var data = [];
@@ -81,6 +81,9 @@
   </button>
   <button onclick="startExperiment()">
     startExperiment()
+  </button>
+  <button onclick="" id="stop_experiment_button">
+    stopExperiment()
   </button>
   <button onclick="plotExperiment()">
     plotExperiment()
@@ -133,6 +136,15 @@
         plotly_data.push(pobj);
       }
 
+      // add reaction rate
+      // plotly_data.push({
+      //   x: [],
+      //   y: [],
+      //   type: 'scatter',
+      //   name: 's',
+      // });
+      // to here
+
       // plotly plot
       Plotly.plot('graph', plotly_data, {}, {
         responsive: true,
@@ -146,7 +158,11 @@
       // if equal also a problem...
       s = parameters.rate_constant;
       for (r in parameters.reactants) {
-        s = s * Math.pow(rc[r], parameters.reactants[r].order);
+        if (rc[r] > 0) {
+          s = s * Math.pow(rc[r], parameters.reactants[r].order);
+        } else {
+          s = 0;
+        }
       }
       return s;
     }
@@ -171,21 +187,31 @@
 
       // START AT 1!
       // data = [];
+      s = calculateRate(c);
+      // data_line = [t].concat(c, [0]);
       data_line = [t].concat(c);
       // console.log(data_line);
       data.push(data_line);
       for (i = 1; i < conditions.Nmax; i++) {
         t = t + conditions.dt;
-        s = calculateRate(c);
         c_next = [];
         for (r in parameters.reactants) {
-          c_next[r] = c[r] - parameters.noise()*(s * conditions.dt * parameters.reactants[r].stoichiometric_coefficient);
+          c_next[r] = c[r] - s * conditions.dt * parameters.reactants[r].stoichiometric_coefficient;
+          if (c_next[r] < 0) {
+            c_next[r] = 0;
+          }
         }
         for (p = 0; p < parameters.products.length; p++) {
-          c_next[p + parameters.reactants.length] = c[p + parameters.reactants.length] + parameters.noise()*(s * conditions.dt * parameters.products[p].stoichiometric_coefficient);
+          c_next[p + parameters.reactants.length] = c[p + parameters.reactants.length] +
+            s * conditions.dt * parameters.products[p].stoichiometric_coefficient;
+          if (c_next[p + parameters.reactants.length] < 0) {
+            c_next[p + parameters.reactants.length] = 0;
+          }
         }
         c = c_next;
+        s = calculateRate(c);
         data_line = [t].concat(c);
+        // data_line = [t].concat(c, s);
         // console.log(data_line);
         data.push(data_line);
       }
@@ -204,8 +230,6 @@
         data_x.push(temp_x);
         data_y.push(temp_y);
       }
-      console.log(data_x);
-      console.log(data_y);
       Plotly.extendTraces('graph', {
         x: data_x,
         y: data_y,
@@ -213,22 +237,18 @@
     }
 
     // plotly 'live' updating
+    // do this better...
     function startExperiment() {
+      dataslice = getData();
       setIntervalX(function() {
+        temp_data = dataslice.next()
+        // console.log(temp_data);
         Plotly.extendTraces('graph', {
           // do this live
-          x: [
-            [0.0],
-            [0.0],
-            [0.0],
-          ],
-          y: [
-            [getData()],
-            [getData()],
-            [getData()],
-          ]
-        }, [0, 1, 2])
-      }, 100, parameters['max_data_points']);
+          x: temp_data.value[0],
+          y: temp_data.value[1],
+        }, range(temp_data.value[0].length));
+      }, 100, conditions.Nmax);
     }
 
     // experiment functions
@@ -236,24 +256,32 @@
     // returns the current timestep worth of data,
     // including any noise is requested
     // make this a generator
-    // function* getData(start = 0, end = 100, step = 1) {
-    //   let iterationCount = 0;
-    //   for (let i = start; i < end; i += step) {
-    //     iterationCount++;
-    //     yield i;
-    //   }
-    //   return iterationCount;
+    function* getData(start = 0, end = data.length, step = 1) {
+      let iterationCount = 0;
+      for (let i = start; i < end; i += step) {
+        iterationCount++;
+        data_x = []
+        data_y = []
+        for (j = 1; j < data[i].length; j++) {
+          data_x.push([data[i][0]]);
+          data_y.push([data[i][j]]);
+        }
+        // console.log([data_x, data_y]);
+        yield [data_x, data_y];
+      }
+      return iterationCount;
+    }
+
+    // get this with a yield function....
+    // function getData() {
+    //   return calcC() + parameters.noise();
     // }
 
-    function getData() {
-      return calcC() + parameters.noise();
-    }
-
-    function calcC() {
-      return 0
-      // calculate rate
-      // calculate change
-    }
+    // function calcC() {
+    //   return 0
+    //   // calculate rate
+    //   // calculate change
+    // }
 
 
     // helper functions
@@ -265,6 +293,9 @@
           window.clearInterval(intervalID);
         }
       }, delay);
+      document.getElementById('stop_experiment_button').addEventListener('click', function() {
+        window.clearInterval(intervalID);
+      });
     }
 
     function getCSVFile() {
@@ -276,8 +307,8 @@
       let csvContent = "data:text/csv;charset=utf-8,";
 
       data.forEach(function(rowArray) {
-          let row = rowArray.join(",");
-          csvContent += row + "\r\n";
+        let row = rowArray.join(",");
+        csvContent += row + "\r\n";
       });
 
       // var encodedUri = encodeURI(csvContent);
