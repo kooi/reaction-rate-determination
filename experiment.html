@@ -6,52 +6,71 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
 
-
+  <script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+      TeX: {
+        extensions: ['mhchem.js']
+      },
+      tex2jax: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        ignoreClass: "math-editor", // put this here
+      }
+    });
+  </script>
+  <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML"></script>
 
   <script>
+    // parameters_database = [{
+    //     id: ,
+    //     title: '',
+    //     reaction_equation: '',
+    //   }
+    //   reactants: [{
+    //     formula: '',
+    //     id: '',
+    //     concentration: 1.0,
+    //     order: ,
+    //     stoichiometric_coefficient: ,
+    //   }]
+    // ];
+    //
+
+
     // elementary only currently
     // TODO: Load parameters based off passed identifier from parameter database
     // TODO: Remove label data
     // TODO: Include formatted reaction
     var parameters = {
       id: 1,
-      title: 'Experiment name',
+      // title: 'Experiment name',
+      reaction_equation: '2 N_2O_5 -> 4 NO_2 + O_2',
+      rate_constant: 1,
       reactants: [{
           formula: 'NO',
-          label0: '[NO] = ',
-          label1: ' M',
           id: 'reactant_a',
           concentration: 1.0,
-          // ---- //
           order: 0,
           stoichiometric_coefficient: 2,
         },
         {
           formula: 'O2',
-          label0: '[O2] = ',
-          label1: ' M',
           id: 'reactant_b',
           concentration: 0.6,
-          // ---- //
           order: 0,
           stoichiometric_coefficient: 1,
         },
       ],
       products: [{
         formula: 'NO2',
-        label0: '[NO2] = ',
-        label1: ' M',
         id: 'reactant_c',
         concentration: 0.0,
-        // ---- //
         order: 1,
         stoichiometric_coefficient: 2,
       }, ],
-      rate_constant: 1,
       // TODO: v2: Include a noise function in a sane way
-      noise: function() {
-        return 1; //  + (Math.random() - 0.5)*1
-      },
     };
 
     // TODO: inlcude in the same way as the species
@@ -74,9 +93,8 @@
 
     <div class='row' class='border border-dark'>
       <div id='header'>
-        <h2>There should be a title here</h2>
-        <div id='formula'>
-          A + B --> C
+        <h2>Virtueel Experiment Reactiekinetiek</h2>
+        <div id='reaction_equation'>
         </div>
       </div>
     </div>
@@ -103,9 +121,9 @@
             <div class="input-group-prepend">
               <span class="input-group-text">N<sub>max</sub> = </span>
             </div>
-            <input type="text" class="form-control" input id='tmax' value='100'>
+            <input type="text" class="form-control" input id='Nmax' value='100'>
             <!-- <div class="input-group-append"> -->
-              <!-- <span class="input-group-text">.00</span> -->
+            <!-- <span class="input-group-text">.00</span> -->
             <!-- </div> -->
           </div>
         </div>
@@ -113,6 +131,9 @@
       </div>
       <div class='col border border-dark'>
         <div id='experimental_buttons' class='border border-dark'>
+          <button onclick="loadURLParameters()" class="btn btn-outline-primary">
+            loadURLParameters()
+          </button>
           <!-- TODO: Load from URL parameters -->
           <!-- TDOD: Load from cookie -->
           <button onclick="loadExperiment()" class="btn btn-outline-primary">
@@ -151,9 +172,6 @@
   </div>
 
 
-  <!-- <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script> -->
-  <!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script> -->
-  <!-- <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script> -->
 
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <script>
@@ -174,7 +192,26 @@
     //   </div>
     // </div>
 
+    function loadURLParameters() {
+      params = (new URL(document.location)).searchParams;
+      keys = [
+        'courseid',
+        'courseshortname',
+        'coursefullname',
+        'userid',
+        'username',
+        'userfullname',
+      ]
+      for (k in keys) {
+        console.log(keys[k] + '=' + params.get(keys[k]));
+      }
+    }
+
     function loadExperiment() {
+      document.getElementById('reaction_equation').innerHTML = chem(parameters.reaction_equation);
+      // rerender MathJax
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+
       for (r in parameters.reactants) {
 
         grp = document.createElement('div');
@@ -186,7 +223,7 @@
 
         gt0 = document.createElement('span');
         gt0.classList.add('input-group-text');
-        gt0.textContent = parameters.reactants[r].label0;
+        gt0.textContent = chem('['+parameters.reactants[r].formula+'] = ');
 
         inp = document.createElement('input')
         inp.setAttribute('type', 'text');
@@ -199,7 +236,7 @@
 
         gt1 = document.createElement('span');
         gt1.classList.add('input-group-text');
-        gt1.textContent = parameters.reactants[r].label1;
+        gt1.textContent = " M";
 
         // lb0 = document.createTextNode(parameters.reactants[r].label0)
         // lb1 = document.createTextNode(parameters.reactants[r].label1)
@@ -223,7 +260,7 @@
           x: [conditions.t],
           y: [parameters.reactants[r].concentration],
           type: 'scatter',
-          name: parameters.reactants[r].formula,
+          name: chem(parameters.reactants[r].formula),
         }
         plotly_data.push(pobj);
       }
@@ -233,7 +270,7 @@
           x: [conditions.t],
           y: [parameters.products[p].concentration],
           type: 'scatter',
-          name: parameters.products[p].formula,
+          name: chem(parameters.products[p].formula),
         }
         plotly_data.push(pobj);
       }
@@ -248,10 +285,27 @@
       // });
       // to here
 
-      Plotly.plot('graph', plotly_data, {
-        //        autosize: true,
-        // width: 1000,
-      }, {
+      var plotly_layout = {
+        xaxis: {
+          title: 'tijd (s)',
+          titlefont: {
+            family: 'Arial, sans-serif',
+            size: 18,
+            color: 'lightgrey'
+          },
+          range: [conditions.t, conditions.t + conditions.dt*conditions.Nmax],
+        },
+        yaxis: {
+          title: 'concentratie (M)',
+          titlefont: {
+            family: 'Arial, sans-serif',
+            size: 18,
+            color: 'lightgrey'
+          },
+        }
+      };
+
+      Plotly.plot('graph', plotly_data, plotly_layout, {
         responsive: true,
       });
     }
@@ -264,6 +318,13 @@
       // for (p in parameters.products) {
       //   parameters.products[p].concentration = parseFloat(document.getElementById(parameters.products[p].id).value)
       // }
+      // TODO: unhardcode
+      conditions.dt = parseFloat(document.getElementById('dt').value);
+      conditions.Nmax = parseFloat(document.getElementById('Nmax').value);
+
+      // rerender MathJax
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+
     }
 
 
@@ -376,6 +437,10 @@
     // helper functions
     let range = n => [...Array(n).keys()]
 
+    function chem(a) {
+      return '$$\\ce{' + a + '}$$';
+
+    }
 
     function setIntervalX(callback, delay, repetitions) {
       var x = 0;
