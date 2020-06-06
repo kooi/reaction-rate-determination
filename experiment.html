@@ -131,12 +131,12 @@
       </div>
       <div class='col border border-dark'>
         <div id='experimental_buttons' class='border border-dark'>
-          <button onclick="loadURLParameters()" class="btn btn-outline-primary">
+          <!-- <button onclick="loadURLParameters()" class="btn btn-outline-primary">
             loadURLParameters()
-          </button>
+          </button> -->
           <!-- TODO: Load from URL parameters -->
           <!-- TDOD: Load from cookie -->
-          <button onclick="loadExperiment()" class="btn btn-outline-primary">
+          <!-- <button onclick="loadExperiment()" class="btn btn-outline-primary">
             loadExperiment()
           </button>
           <button onclick="loadParameters()" class="btn btn-outline-primary">
@@ -159,8 +159,27 @@
           </button>
           <button onclick="getCSVFile()" class="btn btn-outline-success">
             getCSVFile()
+          </button> -->
+
+          <!-- <br>
+          <br>
+          <br> -->
+
+          <!-- <button onclick="doOnload()" id="do_onload" class="btn btn-light">
+            doOnload()
+          </button> -->
+          <button onclick="doSetup()" id="do_setup" class="btn btn-primary">
+            Setup
           </button>
-          <!-- TODO: Reset button -->
+          <button onclick="doRun()" id="do_run" class="btn btn-success">
+            Run
+          </button>
+          <button onclick="doDownload()" id="do_download" class="btn btn-info" disabled>
+            Download CSV
+          </button>
+          <button onclick="doReset()" id="do_reset" class="btn btn-danger" disabled>
+            Reset
+          </button>
         </div>
       </div>
     </div>
@@ -180,6 +199,45 @@
     // TODO: * called partial step functions (cuurently button callable)
     // TODO: * organised utility functions
     // TODO: * organised utility data functions
+
+
+    // user functions
+    function doOnload() {
+      // not actually a button function
+      loadURLParameters();
+      loadExperiment();
+
+      disableButtons(['do_run', 'do_download']);
+      enableButtons(['do_setup']);
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    }
+
+    function doSetup() {
+      loadParameters();
+      createEmptyPlot();
+      calculateData();
+
+      disableButtons(['do_setup', 'do_download']);
+      enableButtons(['do_run']);
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+    }
+
+    function doRun() {
+      startExperiment();
+
+      disableButtons([, 'do_setup', 'do_run']);
+      enableButtons(['do_download', 'do_reset']);
+      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+
+    }
+
+    function doDownload() {
+      getCSVFile('data');
+    }
+
+    function doReset() {
+      location.reload();
+    }
 
 
     // <div class="input-group mb-3">
@@ -209,8 +267,6 @@
 
     function loadExperiment() {
       document.getElementById('reaction_equation').innerHTML = chem(parameters.reaction_equation);
-      // rerender MathJax
-      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
 
       for (r in parameters.reactants) {
 
@@ -223,7 +279,7 @@
 
         gt0 = document.createElement('span');
         gt0.classList.add('input-group-text');
-        gt0.textContent = chem('['+parameters.reactants[r].formula+'] = ');
+        gt0.textContent = chem('[' + parameters.reactants[r].formula + '] = ');
 
         inp = document.createElement('input')
         inp.setAttribute('type', 'text');
@@ -293,7 +349,7 @@
             size: 18,
             color: 'lightgrey'
           },
-          range: [conditions.t, conditions.t + conditions.dt*conditions.Nmax],
+          range: [conditions.t, conditions.t + conditions.dt * conditions.Nmax],
         },
         yaxis: {
           title: 'concentratie (M)',
@@ -321,10 +377,6 @@
       // TODO: unhardcode
       conditions.dt = parseFloat(document.getElementById('dt').value);
       conditions.Nmax = parseFloat(document.getElementById('Nmax').value);
-
-      // rerender MathJax
-      MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
-
     }
 
 
@@ -435,6 +487,22 @@
 
 
     // helper functions
+    function enableButtons(elements) {
+      for (e in elements) {
+        if (document.getElementById(elements[e])) {
+          document.getElementById(elements[e]).disabled = false;
+        }
+      }
+    }
+
+    function disableButtons(elements) {
+      for (e in elements) {
+        if (document.getElementById(elements[e])) {
+          document.getElementById(elements[e]).disabled = true;
+        }
+      }
+    }
+
     let range = n => [...Array(n).keys()]
 
     function chem(a) {
@@ -450,13 +518,12 @@
           window.clearInterval(intervalID);
         }
       }, delay);
-      document.getElementById('stop_experiment_button').addEventListener('click', function() {
-        window.clearInterval(intervalID);
-      });
+      // document.getElementById('stop_experiment_button').addEventListener('click', function() {
+      //   window.clearInterval(intervalID);
+      // });
     }
 
-
-    function getCSVFile() {
+    function getCSVFile(filename) {
       // TODO: Include header
       let csvContent = "data:text/csv;charset=utf-8,";
 
@@ -469,11 +536,16 @@
       var link = document.createElement("a");
       link.setAttribute("href", encodedUri);
       // TODO: set filename based off data
-      link.setAttribute("download", "my_data.csv");
+      link.setAttribute("download", filename + ".csv");
       document.body.appendChild(link); // Required for FF
 
       link.click();
     }
+
+    // Onload
+    window.addEventListener('load', (event) => {
+      doOnload();
+    });
   </script>
 
 </body>
