@@ -23,20 +23,196 @@
   <script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/latest.js?config=TeX-MML-AM_CHTML"></script>
 
   <script>
-    // parameters_database = [{
-    //     id: ,
-    //     title: '',
-    //     reaction_equation: '',
-    //   }
-    //   reactants: [{
-    //     formula: '',
-    //     id: '',
-    //     concentration: 1.0,
-    //     order: ,
-    //     stoichiometric_coefficient: ,
-    //   }]
-    // ];
-    //
+    parameters_database = [{
+        id: 'A',
+        reaction_equation: '2 N_2O_5 -> 4 NO_2 + O_2',
+        rate_constant: 1,
+        reactants: [{
+          formula: 'N_2O_5',
+          id: 'r_n2o5',
+          concentration: 1.0,
+          order: 1,
+          stoichiometric_coefficient: 2,
+        },
+      ],
+        products: [{
+            formula: 'N_2O_4',
+            id: 'r_n2o4',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 4,
+          },
+          {
+            formula: 'O_2',
+            id: 'r_o2',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+        ]
+      },
+      {
+        id: 'E',
+        reaction_equation: '2 H_2O_2 ->[\\rm I^-] 2 H_2O + O2',
+        rate_constant: 1,
+        reactants: [{
+            formula: 'H_2O_2',
+            id: 'r_h2o2',
+            concentration: 1.0,
+            order: 1,
+            stoichiometric_coefficient: 2,
+          },
+          {
+            formula: 'I^-',
+            id: 'r_i',
+            concentration: 1.0,
+            order: 1,
+            stoichiometric_coefficient: 0,
+          },
+        ],
+        products: [{
+            formula: 'H_2O',
+            id: 'r_h2o',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 2,
+          },
+          {
+            formula: 'O_2',
+            id: 'r_o2',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+        ]
+      },
+      {
+        id: 'F',
+        reaction_equation: '2 NO_2 + F_2 -> 2 NO_2F',
+        rate_constant: 1,
+        reactants: [{
+            formula: 'NO_2',
+            id: 'r_no2',
+            concentration: 1.0,
+            order: 1,
+            stoichiometric_coefficient: 2,
+          },
+          {
+            formula: 'F_2',
+            id: 'r_f2',
+            concentration: 1.0,
+            order: 1,
+            stoichiometric_coefficient: 1,
+          },
+        ],
+        products: [{
+            formula: 'NO_2F',
+            id: 'r_no2f',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 2,
+          },
+        ]
+      },
+      {
+        id: 'G',
+        reaction_equation: '2 H_2 + 2 NO -> N_2 + H_2O',
+        rate_constant: 1,
+        reactants: [{
+            formula: 'H_2',
+            id: 'r_h2',
+            concentration: 1.0,
+            order: 1,
+            stoichiometric_coefficient: 2,
+          },
+          {
+            formula: 'NO',
+            id: 'r_no',
+            concentration: 1.0,
+            order: 2,
+            stoichiometric_coefficient: 2,
+          },
+        ],
+        products: [{
+            formula: 'N_2',
+            id: 'r_n2',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+          {
+            formula: 'H_2O',
+            id: 'r_h2o',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+        ]
+      },
+      {
+        id: 'H',
+        reaction_equation: 'NO + Br_2 -> NOBr2',
+        rate_constant: 1,
+        reactants: [{
+            formula: 'NO',
+            id: 'r_no',
+            concentration: 1.0,
+            order: 2,
+            stoichiometric_coefficient: 1,
+          },
+          {
+            formula: 'Br_2',
+            id: 'r_br2',
+            concentration: 1.0,
+            order: 1,
+            stoichiometric_coefficient: 1,
+          },
+        ],
+        products: [{
+            formula: 'NOBr_2',
+            id: 'r_nobr2',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+        ]
+      },
+      {
+        id: 'I',
+        reaction_equation: 'NO_2 + CO -> NO + CO_2',
+        rate_constant: 1,
+        reactants: [{
+            formula: 'NO_2',
+            id: 'r_no2',
+            concentration: 1.0,
+            order: 2,
+            stoichiometric_coefficient: 1,
+          },
+          {
+            formula: 'CO',
+            id: 'r_co',
+            concentration: 1.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+        ],
+        products: [{
+            formula: 'NO',
+            id: 'r_no',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+          {
+            formula: 'CO_2',
+            id: 'r_co2',
+            concentration: 0.0,
+            order: 0,
+            stoichiometric_coefficient: 1,
+          },
+        ]
+      },
+    ];
 
 
     // elementary only currently
@@ -46,7 +222,7 @@
     var parameters = {
       id: 1,
       // title: 'Experiment name',
-      reaction_equation: '2 N_2O_5 -> 4 NO_2 + O_2',
+      reaction_equation: '2 H_2O_2 ->[\\rm I^-] 2 H_2O + O2',
       rate_constant: 1,
       reactants: [{
           formula: 'NO',
@@ -82,16 +258,15 @@
 
     var data = [];
   </script>
-
 </head>
 
 <body>
   <!-- TODO: Use simple (responsive) box formatting for layout -->
   <!-- TODO: Initialize with moodle user id! -->
 
-  <div class='container border border-dark'>
+  <div class='container'>
 
-    <div class='row' class='border border-dark'>
+    <div class='row'>
       <div id='header'>
         <h2>Virtueel Experiment Reactiekinetiek</h2>
         <div id='reaction_equation'>
@@ -100,9 +275,9 @@
     </div>
 
     <div class='row'>
-      <div class='col border border-dark'>
+      <div class='col'>
 
-        <div id='experimental_conditions' class='border border-dark'>
+        <div id='experimental_conditions'>
           <!-- TODO: refactor to load from config -->
           <!-- <input id='dt' value='0.01'> s<br> -->
           <!-- N<sub>max</sub> = <input id='tmax' value='5000'><br> -->
@@ -129,8 +304,8 @@
         </div>
 
       </div>
-      <div class='col border border-dark'>
-        <div id='experimental_buttons' class='border border-dark'>
+      <div class='col'>
+        <div id='experimental_buttons'>
           <!-- <button onclick="loadURLParameters()" class="btn btn-outline-primary">
             loadURLParameters()
           </button> -->
@@ -263,6 +438,8 @@
       for (k in keys) {
         console.log(keys[k] + '=' + params.get(keys[k]));
       }
+      seed = params.get('userid');
+      parameters = parameters_database[seed%parameters_database.length]
     }
 
     function loadExperiment() {
@@ -495,6 +672,7 @@
       }
     }
 
+
     function disableButtons(elements) {
       for (e in elements) {
         if (document.getElementById(elements[e])) {
@@ -503,12 +681,13 @@
       }
     }
 
+
     let range = n => [...Array(n).keys()]
 
     function chem(a) {
       return '$$\\ce{' + a + '}$$';
-
     }
+
 
     function setIntervalX(callback, delay, repetitions) {
       var x = 0;
@@ -522,6 +701,7 @@
       //   window.clearInterval(intervalID);
       // });
     }
+
 
     function getCSVFile(filename) {
       // TODO: Include header
